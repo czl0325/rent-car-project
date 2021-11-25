@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -12,15 +13,24 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.Lshortfile)
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.TimeKey = ""
+	myLog, err := config.Build()
+	if err != nil {
+		log.Fatalf("日志启动失败，错误=%v", err)
+	}
+
 	go startGRPCGateway()
 	listener, err := net.Listen("tcp", ":9081")
 	if err != nil {
-		log.Fatalf("服务器启动失败，错误=%v", err)
+		myLog.Sugar().Fatalf("服务器启动失败，错误=%v", err)
 	}
 	s := grpc.NewServer()
 	trippb.RegisterTripServiceServer(s, &trip.Service{})
-	log.Fatalln(s.Serve(listener))
+	err = s.Serve(listener)
+	if err != nil {
+		myLog.Sugar().Fatalf("服务器启动失败，错误=%v", err)
+	}
 }
 
 
@@ -28,8 +38,12 @@ func startGRPCGateway() {
 	c := context.Background()
 	c, cancel := context.WithCancel(c)
 	defer cancel()
-	mux := runtime.NewServeMux()
-	err := trippb.RegisterTripServiceHandlerFromEndpoint(c, mux, ":9081", []grpc.DialOption{grpc.WithInsecure()})
+	mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		OrigName:     true,
+		EnumsAsInts:  true,
+		EmitDefaults: false,
+	}))
+	err := trippb.RegisterTripServiceHandlerFromEndpoint(c, mux, ":9100", []grpc.DialOption{grpc.WithInsecure()})
 	if err != nil {
 		log.Fatalf("启动grpc gateway失败。错误=%v\n", err)
 	}
