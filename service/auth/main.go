@@ -15,7 +15,7 @@ func main() {
 	}
 	server.RunGRPCServer(&server.GRPCConfig{
 		Name:              "auth",
-		Addr:              "9100",
+		Addr:              ":9100",
 		AuthPublicKeyFile: "",
 		RegisterFunc: func(g *grpc.Server) {
 			authpb.RegisterAuthServiceServer(g, &auth.Service{})

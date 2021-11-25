@@ -6,15 +6,9 @@ message LoginRequest {
   string code = 1;
 }
 
-message CommonResponse {
-  int32 code = 1;
-  string message = 2;
-  LoginResponse data = 3;
-}
-
 message LoginResponse {
   string token = 1;
-  string expire_in = 2;
+  int32 expire_in = 2;
 }
 
 service AuthService {
