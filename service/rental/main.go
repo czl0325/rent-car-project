@@ -7,9 +7,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"log"
-	authpb "service/auth/api/gen/v1"
-	"service/auth/auth"
-	"service/auth/dao"
+	rentalpb "service/rental/api/gen/v1"
+	"service/rental/rental"
 	"service/shared/server"
 )
 
@@ -18,24 +17,23 @@ func main() {
 	if err != nil {
 		log.Fatalf("日志模块初始化失败,错误=%v", err)
 	}
-
 	c := context.Background()
 	mc, err := mongo.Connect(c, options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		myLogger.Error("连接mongodb失败,错误=%v\n", zap.Error(err))
 	}
-
+	myLogger.Info("输出=", zap.Any("mongo", mc))
 	err = server.RunGRPCServer(&server.GRPCConfig{
-		Name: "auth",
-		Addr: ":9100",
+		Name:         "rental",
+		Addr:         ":9200",
 		RegisterFunc: func(g *grpc.Server) {
-			authpb.RegisterAuthServiceServer(g, &auth.Service{
-				Mongo: dao.NewMongo(mc.Database("rentcar")),
+			rentalpb.RegisterTripServiceServer(g, &rental.Service{
+
 			})
 		},
-		Logger: myLogger,
+		Logger:       myLogger,
 	})
 	if err != nil {
-		myLogger.Error("启动auth微服务失败,错误=%v", zap.Error(err))
+		myLogger.Error("启动rental微服务失败,错误=%v", zap.Error(err))
 	}
 }

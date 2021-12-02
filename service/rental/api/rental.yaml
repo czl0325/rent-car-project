@@ -1,0 +1,11 @@
+type: google.api.Service
+config_version: 3
+
+http:
+  rules:
+    - selector: rental.v1.TripService.CreateTrip
+      post: /v1/trip/create
+      body: "*"
+
+    - selector: rental.v1.TripService.GetTrip
+      get: /v1/trip/get

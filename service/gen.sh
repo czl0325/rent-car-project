@@ -14,4 +14,7 @@ function genProto {
   protoc -I=$PROTO_PATH --grpc-gateway_out=paths=source_relative,grpc_api_configuration=${PROTO_PATH}/${DOMAIN}.yaml:${GO_OUT_PATH} ${DOMAIN}.proto
 }
 
+# --swagger_out=allow_repeated_fields_in_body=true,logtostderr=true:${DOMAIN}
+
 genProto auth
+genProto rental

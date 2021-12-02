@@ -1,0 +1,62 @@
+syntax = "proto3";
+package rental.v1;
+option go_package = "service/rental/api/gen/v1;rentalpb";
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message LocationStatus {
+  Location location = 1;
+  int32 fee_cent = 2;
+  double km_driven = 3;
+  string poi_name = 4;
+  int64 timestamp_sec = 5;
+}
+
+enum TripStatus {
+  TS_NOT_SPECIFIED = 0;
+  IN_PROGRESS = 1;
+  FINISHED = 2;
+}
+
+message Trip {
+  string id = 1;
+  string account_id = 2;
+  string car_id = 3;
+  LocationStatus start = 4;
+  LocationStatus current = 5;
+  LocationStatus end = 6;
+  TripStatus status = 7;
+  string identity_id = 8;
+}
+
+message CreateTripRequest {
+  Location start = 1;
+  string car_id = 2;
+  string avatar_url = 3;
+}
+
+message GetTripRequest {
+  string id = 1;
+}
+
+message GetTripsRequest {
+  TripStatus status = 1;
+}
+
+message GetTripsResponse {
+  repeated Trip trips = 1;
+}
+
+message UpdateTripRequest {
+  string id = 1;
+  Location current = 2;
+  bool end_trip = 3;
+}
+
+service TripService {
+  rpc CreateTrip (CreateTripRequest) returns (Trip);
+  rpc GetTrip (GetTripRequest) returns (Trip);
+}

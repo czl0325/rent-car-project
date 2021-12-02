@@ -8,8 +8,8 @@ import (
 )
 
 type userTokenClaim struct {
-	Phone string
-	jwt.StandardClaims
+	Phone string 	`json:"phone,omitempty"`
+	jwt.RegisteredClaims
 }
 
 func GenerateToken(phone string) (string, error) {
@@ -21,11 +21,11 @@ func GenerateToken(phone string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	now := time.Now().Unix() + 7200
-	claim := userTokenClaim{
+	exp := &jwt.NumericDate{ Time: time.Now().Add(time.Hour*240) }
+	claim := userTokenClaim {
 		phone,
-		jwt.StandardClaims{
-			ExpiresAt: now,
+		jwt.RegisteredClaims{
+			ExpiresAt: exp,
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, claim)

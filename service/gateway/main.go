@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	authpb "service/auth/api/gen/v1"
+	rentalpb "service/rental/api/gen/v1"
 	"service/shared/server"
 )
 
@@ -37,6 +38,11 @@ func main() {
 			Name:         "auth",
 			Addr:         ":9100",
 			RegisterFunc: authpb.RegisterAuthServiceHandlerFromEndpoint,
+		},
+		{
+			Name:         "rental",
+			Addr:         ":9200",
+			RegisterFunc: rentalpb.RegisterTripServiceHandlerFromEndpoint,
 		},
 	}
 
