@@ -31,7 +31,7 @@ func main() {
 	serverConfig := []struct {
 		Name         string
 		Addr         string
-		RegisterFunc func(c context.Context, mux *runtime.ServeMux, endPoint string, opts []grpc.DialOption) error
+		RegisterFunc func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error
 	}{
 		{
 			Name:         "auth",

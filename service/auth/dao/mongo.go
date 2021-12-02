@@ -33,13 +33,17 @@ func (m *Mongo) LoginWithRegister(c context.Context, user *authpb.LoginRequest) 
 		return nil, fmt.Errorf("登录注册失败,错误=%+v\n", res.Err())
 	}
 	var row struct {
-		Id    primitive.ObjectID `bson:"_id"`
-		Phone string             `bson:"phone"`
+		Id       primitive.ObjectID `bson:"_id"`
+		Phone    string             `bson:"phone"`
+		Password string             `bson:"password"`
 	}
 	err := res.Decode(&row)
 	if err != nil {
 		return nil, fmt.Errorf("解析数据库错误,错误=%+v\n", err)
 	}
-	newUser := &authpb.UserInfo{Id:row.Id.String(), Phone:row.Phone}
+	if row.Password != user.Password {
+		return nil, fmt.Errorf("密码错误")
+	}
+	newUser := &authpb.UserInfo{Id: row.Id.String(), Phone: row.Phone}
 	return newUser, nil
 }

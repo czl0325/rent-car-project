@@ -9,7 +9,6 @@ import (
 type GRPCConfig struct {
 	Name              string
 	Addr              string
-	AuthPublicKeyFile string
 	RegisterFunc      func(*grpc.Server)
 	Logger            *zap.Logger
 }
