@@ -7,7 +7,12 @@ import (
 	"time"
 )
 
-func GenerateToken(data interface{}) (string, error) {
+type userTokenClaim struct {
+	Phone string
+	jwt.StandardClaims
+}
+
+func GenerateToken(phone string) (string, error) {
 	b, err := os.ReadFile("config/private.key")
 	if err != nil {
 		return "", err
@@ -17,8 +22,13 @@ func GenerateToken(data interface{}) (string, error) {
 		return "", err
 	}
 	now := time.Now().Unix() + 7200
-	(data.(map[string]interface{}))["exp"] = now
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512, data.(jwt.MapClaims))
+	claim := userTokenClaim{
+		phone,
+		jwt.StandardClaims{
+			ExpiresAt: now,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, claim)
 	return token.SignedString(key)
 }
 

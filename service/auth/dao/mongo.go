@@ -6,8 +6,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	authpb "service/auth/api/gen/v1"
+	"service/shared/token"
 )
 
 type Mongo struct {
@@ -21,17 +21,9 @@ func NewMongo(db *mongo.Database) *Mongo {
 }
 
 func (m *Mongo) LoginWithRegister(c context.Context, user *authpb.LoginRequest) (*authpb.UserInfo, error) {
-	res := m.col.FindOneAndUpdate(c, bson.M{
+	res := m.col.FindOne(c, bson.M{
 		"phone": user.Phone,
-	}, bson.M{
-		"$set": bson.M{
-			"phone":    user.Phone,
-			"password": user.Password,
-		},
-	}, options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After))
-	if res.Err() != nil {
-		return nil, fmt.Errorf("登录注册失败,错误=%+v\n", res.Err())
-	}
+	})
 	var row struct {
 		Id       primitive.ObjectID `bson:"_id"`
 		Phone    string             `bson:"phone"`
@@ -39,11 +31,28 @@ func (m *Mongo) LoginWithRegister(c context.Context, user *authpb.LoginRequest) 
 	}
 	err := res.Decode(&row)
 	if err != nil {
-		return nil, fmt.Errorf("解析数据库错误,错误=%+v\n", err)
+		insert, err := m.col.InsertOne(c, bson.M{
+			"phone":    user.Phone,
+			"password": user.Password,
+		})
+		if err != nil {
+			return nil, err
+		}
+		tk, err := token.GenerateToken(row.Phone)
+		if err != nil {
+			return nil, err
+		}
+		newUser := &authpb.UserInfo{Id: insert.InsertedID.(primitive.ObjectID).Hex(), Phone: row.Phone, Token: tk}
+		return newUser, nil
+	} else {
+		if row.Password != user.Password {
+			return nil, fmt.Errorf("密码错误")
+		}
+		tk, err := token.GenerateToken(row.Phone)
+		if err != nil {
+			return nil, err
+		}
+		newUser := &authpb.UserInfo{Id: row.Id.Hex(), Phone: row.Phone, Token: tk}
+		return newUser, nil
 	}
-	if row.Password != user.Password {
-		return nil, fmt.Errorf("密码错误")
-	}
-	newUser := &authpb.UserInfo{Id: row.Id.String(), Phone: row.Phone}
-	return newUser, nil
 }
