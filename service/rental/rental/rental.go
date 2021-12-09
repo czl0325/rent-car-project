@@ -3,10 +3,12 @@ package rental
 import (
 	"context"
 	rentalpb "service/rental/api/gen/v1"
+	"service/rental/dao"
 )
 
 type Service struct {
 	*rentalpb.UnimplementedTripServiceServer
+	Mongo *dao.Mongo
 }
 
 func (s *Service) CreateTrip(c context.Context, request *rentalpb.CreateTripRequest) (*rentalpb.Trip, error) {

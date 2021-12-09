@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	rentalpb "service/rental/api/gen/v1"
+	"service/rental/dao"
 	"service/rental/rental"
 	"service/shared/server"
 )
@@ -28,7 +29,7 @@ func main() {
 		Addr:         ":9200",
 		RegisterFunc: func(g *grpc.Server) {
 			rentalpb.RegisterTripServiceServer(g, &rental.Service{
-
+				Mongo: dao.NewMongo(mc.Database("rentcar")),
 			})
 		},
 		Logger:       myLogger,
